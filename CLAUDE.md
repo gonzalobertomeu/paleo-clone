@@ -46,10 +46,10 @@ Sin código. Un documento por dominio, cada uno con su prefijo de ID:
 |---|---|---|---|
 | `GameRules.md` | `GR-*` | Reglas del juego. Dominio puro, agnóstico de tecnología. | v1.0 ✅ |
 | `Architecture.md` | `ARCH-*` | Stack, capas, estructura de carpetas, infra, idioma, testing. | v1.0 ✅ |
-| `CardData.md` | `CD-*` | Datos de las cartas: requisitos, costes, recompensas, secretos. | Pendiente |
+| `CardData.md` | `CD-*` | Datos de las cartas: requisitos, costes, recompensas, secretos. | v0.1 🚧 (esquema; sin corpus) |
 | `Backend.md` | `BE-*` | Módulos, casos de uso, máquina de estados, persistencia. | Pendiente |
 | `Frontend.md` | `FE-*` | Estructura del cliente, estado de UI, flujos de interacción. | Pendiente |
-| `Protocol.md` | `API-*` | Router tRPC: procedures, subscriptions, eventos, errores. | Pendiente |
+| `Protocol.md` | `API-*` | Router tRPC: procedures, subscriptions, eventos, errores. | v0.1 🚧 |
 | `Components.md` | `CMP-*` | Componentización, jerarquía y contratos de componentes. | Pendiente |
 | `Styles.md` | `ST-*` | Sistema de diseño: tokens, tipografía, color, espaciado, temas. | Pendiente |
 
@@ -80,7 +80,12 @@ No negociables sin cambiar `Architecture.md` primero:
 
 ## Estado actual
 
+> **Pendientes y dónde retomar: [`TODO.md`](TODO.md)** (índice vivo de OQ abiertas, specs por escribir y scaffolding).
+
+
 Specs de reglas y arquitectura cerradas. **Aún no se ha escrito código ni levantado infra.**
+
+**Alcance v1 (`OQ-2`, resuelta):** motor genérico preparado para A–J; en v1 solo se cargan los datos de Base + módulos A y B.
 
 Cuestiones abiertas que bloquean el scaffolding: persistencia (`OQ-ARCH-1`), identidad de jugador (`OQ-ARCH-2`), monorepo/workspaces (`OQ-ARCH-3`), targets del Makefile y puertos (`OQ-ARCH-4`), reconexión (`OQ-ARCH-5`).
 

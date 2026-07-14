@@ -47,7 +47,7 @@ IDs estables `ARCH-<sección>.<número>`. No se renumeran ni se reutilizan; una 
 | herida | `Wound` |
 | calavera | `Skull` |
 | ficha de victoria | `VictoryToken` |
-| habilidad (fuerza/percepción/destreza) | `Ability` (`Strength`/`Awareness`/`Skill`) |
+| habilidad (fuerza/percepción/destreza) | `Ability` (`Strength`/`Awareness`/`Skill`) † |
 | banco de trabajo | `Workbench` |
 | cementerio | `Cemetery` |
 | almacén | `Storage` |
@@ -58,6 +58,8 @@ IDs estables `ARCH-<sección>.<número>`. No se renumeran ni se reutilizan; una 
 | ignorar | `ignore` |
 | dormir | `sleep` |
 | craftear | `craft` |
+
+† `Skill` para *destreza* colisiona semánticamente con "ability" (skill ≈ ability en inglés) y puede leerse raro como `Ability.Skill`. Alternativa a evaluar: `Dexterity`. Ver `OQ-ARCH-6`.
 
 ## ARCH-4. Clean Architecture
 
@@ -114,7 +116,7 @@ paleo/
 - **ARCH-7.1** El backend **nunca envía a un cliente información que ese jugador no debe ver**: caras de cartas no reveladas (`GR-5.2`), contenido de la pila de descarte boca abajo (`GR-7.8`), mazo de secretos.
 - **ARCH-7.2** El filtrado ocurre **al serializar en el servidor**, en `infrastructure`. Nunca en el cliente. El estado que sale del backend es una **vista personalizada por jugador**.
 - **ARCH-7.3** La **fase de día es simultánea** (`GR-5.1`, `GR-5.6`): el modelo debe soportar elecciones concurrentes de varios jugadores y una **revelación atómica**. No es un modelo de turnos rotativos.
-- **ARCH-7.4** El **orden de resolución de las cartas reveladas lo decide el grupo** (`GR-5.7`), igual que la elección de acción en las misiones (`GR-12.5`). Son decisiones **colectivas** y necesitan su propio modelo de interacción (propuesta/confirmación), a definir en `Protocol.md`.
+- **ARCH-7.4** El **orden de resolución de las cartas reveladas lo decide el grupo** (`GR-5.7`), igual que la elección de acción en las misiones (`GR-12.5`). Su modelo de interacción se define en `Protocol.md` (`API-9`): **coordinación por comunicación libre, sin quórum ni votación** — las decisiones son individuales y el servidor solo las serializa (`API-5.2`).
 
 ## ARCH-8. Testing
 
@@ -131,3 +133,4 @@ paleo/
 - **OQ-ARCH-3** **Monorepo:** ¿workspaces (pnpm/npm) con `shared` como paquete, o tres proyectos independientes con paths de TS? Condiciona los Dockerfiles.
 - **OQ-ARCH-4** **Makefile:** nombres exactos de los targets y puertos expuestos (frontend, backend).
 - **OQ-ARCH-5** **Reconexión:** ¿qué pasa si un jugador se desconecta a mitad de una fase de día? ¿La partida espera, se pausa, hay sustitución?
+- **OQ-ARCH-6** **Nomenclatura de `Skill`:** *destreza* → `Skill` colisiona con "ability". ¿Se mantiene `Skill` o se renombra a `Dexterity` en el glosario (`ARCH-3.3`)? Barato de cambiar ahora, caro tras escribir código.

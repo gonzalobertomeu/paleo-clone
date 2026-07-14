@@ -56,6 +56,7 @@ Cada regla tiene un ID estable `GR-<sección>.<número>`. Los IDs **no se reutil
 - **GR-5.9** **Dormir:** cuando un jugador se queda sin cartas en su mazo, se duerme y deja de participar en el día. No puede resolver cartas ni ayudar a otros.
 - **GR-5.10** **Dormir temprano:** en lugar de revelar y resolver una carta, un jugador puede **descartar el resto de su mazo boca abajo y sin efecto**, durmiéndose de inmediato. Las cartas rojas descartadas así **no causan heridas**.
 - **GR-5.11** La fase de día termina cuando **todos** los jugadores están dormidos.
+- **GR-5.12** **Compromiso de la carta revelada:** gastar la carta revelada —resolver una opción, **ayudar** o **ignorar** (`GR-6.4`)— es **irreversible**: una vez un jugador resuelve su carta no puede arrepentirse ni cambiar de opción. Cada jugador aporta **exactamente una** carta-acción por turno; si la gasta **resolviendo su propia acción**, deja de estar **disponible como ayudante** (`GR-8`) durante el resto de ese turno. Elegir *cuándo* gastarla —resolver ya o esperar por si conviene ayudar a un compañero— es una decisión estratégica individual.
 
 ## GR-6. Dorsos y tipos de carta
 
@@ -69,6 +70,7 @@ Cada regla tiene un ID estable `GR-<sección>.<número>`. Los IDs **no se reutil
 - **GR-6.5** **Cartas de peligro** (fondo rojo o símbolo de peligro): **no se pueden ignorar**. Hay que resolver una acción, aunque sea negativa. Si no se puede resolver por completo una acción negativa, se resuelve **todo lo posible**.
 - **GR-6.6** **Cartas de persona** (fondo verde): se añaden al grupo del jugador (`GR-9`).
 - **GR-6.7** **Acciones negativas:** normalmente no otorgan recompensa; imponen una pérdida (heridas, pagos, calaveras). Algunas ofrecen una compensación parcial.
+- **GR-6.8** Los dorsos de `GR-6.1` son los del **juego base**. Un módulo puede introducir **tipos de dorso propios** con su orientación temática (`GR-6.3`), como parte de sus cartas y reglas (`GR-15.4`) — p. ej. dorsos de **nieve** y de **árboles fríos** en un módulo invernal. Siguen siendo **pistas, no garantías** (`GR-6.1`). El dorso **rojo** (peligro, `GR-6.5`, `GR-7.6`) es el único con semántica especial y **no puede ser redefinido** por un módulo.
 
 ## GR-7. Requisitos, costes y recompensas
 
@@ -106,6 +108,7 @@ Cada regla tiene un ID estable `GR-<sección>.<número>`. Los IDs **no se reutil
 - **GR-9.5** Si muere la **última** persona de un grupo, tras colocar la calavera el jugador **roba inmediatamente una nueva persona** del mazo de Personas.
 - **GR-9.6** **Prevenir heridas:** ciertos efectos (normalmente pagando una herramienta) evitan heridas que se estén sufriendo **ahora**. No sirven para retirar heridas ya colocadas.
 - **GR-9.7** **Curar:** retira N fichas de herida ya colocadas. La curación puede repartirse entre varias personas.
+- **GR-9.8** **Reclutar:** ciertas acciones (p. ej. la carta de **hoguera**, `GR-6.3`) permiten **añadir una persona al grupo** robando la carta **superior del mazo de Personas** (`GR-3.3`), boca arriba, sin elegir. Se toman las fichas de herramienta que otorgue esa persona (`GR-10.4`). A diferencia de `GR-9.5`, no requiere que el grupo se haya quedado sin personas; es la recompensa de una acción y suele tener coste.
 
 ## GR-10. Herramientas, ideas y crafteo
 
@@ -113,7 +116,7 @@ Cada regla tiene un ID estable `GR-<sección>.<número>`. Los IDs **no se reutil
 - **GR-10.2** Una herramienta se coloca junto al grupo y **puede usarse en cuanto se obtiene**.
 - **GR-10.3** **Usar una herramienta implica descartarla**: cada ficha de herramienta es de **un solo uso**.
 - **GR-10.4** Algunas cartas de persona otorgan una herramienta **una única vez**, al unirse al grupo. La herramienta se conserva aunque esa persona muera.
-- **GR-10.5** **Crafteo:** para craftear un objeto hay que tener antes su **idea** en el banco de trabajo. Se pagan los recursos y requisitos como en cualquier acción. Se empieza con 3 ideas (`GR-3.2`).
+- **GR-10.5** **Crafteo:** solo se puede craftear cuando una carta ofrece una **acción de crafteo** (p. ej. la carta de hoguera, `GR-6.3`); **no es una acción disponible en cualquier momento**. Para craftear un objeto hay que tener antes su **idea** en el banco de trabajo. La acción de crafteo **en sí no tiene coste**: lo que se paga es la **receta del propio objeto** (los recursos y requisitos definidos por su idea), como en cualquier acción. Se empieza con 3 ideas (`GR-3.2`).
 - **GR-10.6** **Recompensa "idea":** se roba una carta del mazo de Ideas y se coloca **visible para todos** en un hueco libre del banco de trabajo. Si no hay hueco, hay que **eliminar una idea al cementerio** (no puede ser la recién robada).
 - **GR-10.7** **Talismán:** al revelar una carta de peligro, se puede descartar un talismán para **ignorar el peligro** y descartarlo sin efecto.
 - **GR-10.8** **Tienda:** no tiene efecto propio; otras cartas exigen poseerla.
@@ -165,5 +168,5 @@ Cada regla tiene un ID estable `GR-<sección>.<número>`. Los IDs **no se reutil
 ## Cuestiones abiertas
 
 - **OQ-1** El contenido concreto de las 124 cartas de módulo (requisitos, costes, recompensas, encadenamientos de secretos) **no está en el reglamento**. Requiere una spec de datos propia (`specs/CardData.md`, pendiente) y tiene implicaciones de copyright para la distribución.
-- **OQ-2** Alcance de la v1: ¿implementamos solo el nivel 1 (base + módulos A y B) o el motor completo A–J desde el principio?
-- **OQ-3** Modo de juego: ¿multijugador en red, hotseat, o solitario (1 jugador controlando varios grupos)?
+- **OQ-2** [RESUELTA] Alcance de la v1: ¿implementamos solo el nivel 1 (base + módulos A y B) o el motor completo A–J desde el principio? Decidido: **motor genérico preparado para A–J, pero en v1 solo se cargan los datos de las cartas de Base + módulos A y B**. La arquitectura de reglas y el esquema de datos no asumen el nivel 1; la limitación es de contenido, no de motor.
+- **OQ-3** [RESUELTA → `ARCH-1.2`] Modo de juego: ¿multijugador en red, hotseat, o solitario (1 jugador controlando varios grupos)? Decidido: **multijugador en red y en tiempo real**.
