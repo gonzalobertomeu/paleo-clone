@@ -1,6 +1,6 @@
 # GameRules — Paleo
 
-> **Estado:** v1.0 — Reglas base (nivel 1, módulos A+B).
+> **Estado:** v1.1 — Reglas base (nivel 1, módulos A+B). Modelo de dados precisado (`GR-11.5`–`GR-11.8`): dado de símbolos, no numérico.
 > **Fuente:** Reglamento oficial de Paleo (Peter Rustemeyer, Hans im Glück / Z-Man Games; ed. española de Devir).
 > **Alcance:** este documento describe **el dominio del juego**, no su implementación. Frontend, backend, protocolos y persistencia se especifican en otros documentos de `specs/` y deben referenciar las reglas por su ID (p. ej. `GR-5.2`).
 
@@ -125,9 +125,24 @@ Cada regla tiene un ID estable `GR-<sección>.<número>`. Los IDs **no se reutil
 ## GR-11. Peligros y dados
 
 - **GR-11.1** Ver `GR-6.5` para las cartas de peligro.
-- **GR-11.2** Algunas acciones tienen resultado incierto: se tiran los dados indicados. Los dados **aumentan los requisitos de habilidad** de la acción.
+- **GR-11.2** Algunas acciones tienen resultado incierto: se tiran los dados indicados. Los dados **aumentan los requisitos de habilidad** de la acción. No se comparan contra las habilidades del grupo: las **encarecen**. El grupo resuelve si sus habilidades (más las de quien ayude, `GR-8.2`) cubren el requisito **ya aumentado**.
 - **GR-11.3** Si quiere pedirse ayuda, debe hacerse **antes de tirar**. Nadie puede decidir ayudar después de ver los dados.
 - **GR-11.4** Si el resultado de los dados hace imposible resolver la acción, el jugador debe resolver en su lugar una **acción negativa** de la carta, o **ignorar** la carta si no hay ninguna.
+- **GR-11.5** **El dado es de símbolos, no numérico.** Tiene **6 caras**, cada una un par (habilidad, cantidad):
+
+| Cara | Efecto sobre el requisito |
+|---|---|
+| 1 fuerza | +1 al requisito de **fuerza** |
+| 2 fuerza | +2 al requisito de **fuerza** |
+| 1 percepción | +1 al requisito de **percepción** |
+| 2 percepción | +2 al requisito de **percepción** |
+| 1 destreza | +1 al requisito de **destreza** |
+| 2 destreza | +2 al requisito de **destreza** |
+
+- **GR-11.6** El aumento es **específico de la habilidad que muestra la cara**, no genérico. Sacar «2 percepción» sube el requisito de percepción en +2 y **no afecta** a fuerza ni a destreza. Una acción puede volverse irresoluble (`GR-11.4`) por una habilidad que ni siquiera pedía originalmente.
+- **GR-11.7** **Cuántos dados se tiran lo indica la acción de la carta**: 1 o 2. Es una propiedad de la **acción**, no del *setup* ni del módulo. Dos acciones de la misma partida pueden pedir distinto número de dados.
+- **GR-11.8** Con **2 dados**, **ambos resultados se aplican y se acumulan**. Si muestran la misma habilidad, sus cantidades se suman (2 fuerza + 1 fuerza = +3 al requisito de fuerza). Si muestran habilidades distintas, **suben los dos requisitos a la vez** (2 fuerza + 1 destreza = +2 fuerza y +1 destreza).
+- **GR-11.9** El **módulo anuncia el máximo de dados** que alguna de sus cartas puede llegar a pedir. Es una **ayuda de preparación** —saber cuántos dados hay que tener en la mesa—, **no una regla de resolución**: no obliga a ninguna carta a tirar esa cantidad. Con varios módulos en juego (`GR-15.1`), se prepara el **máximo** de los anunciados.
 
 ## GR-12. Fase de noche
 
@@ -162,6 +177,7 @@ Cada regla tiene un ID estable `GR-<sección>.<número>`. Los IDs **no se reutil
 - **GR-15.3** La primera partida usa los módulos **A + B** (nivel 1).
 - **GR-15.4** Cada módulo retira algunas de sus cartas antes de barajar y puede añadir **reglas propias** (p. ej. el módulo H introduce las balsas, `GR-10.9`).
 - **GR-15.5** Cada módulo aporta **1 carta de misión** (`GR-12.3`).
+- **GR-15.6** Cada módulo **anuncia el máximo de dados** que alguna de sus cartas puede pedir (`GR-11.9`). Es una ayuda de preparación, no una regla: el número real de dados de cada tirada lo dice **la acción** (`GR-11.7`). Con 2 módulos en juego se prepara el **máximo** de los dos.
 
 ---
 

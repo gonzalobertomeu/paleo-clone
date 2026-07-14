@@ -1,6 +1,6 @@
 # Protocol — Paleo
 
-> **Estado:** v0.1 — Contrato de mensajes: procedures, subscriptions, eventos y errores. Enfocado en fase de día (revelación atómica) y decisiones colectivas.
+> **Estado:** v0.2 — Contrato de mensajes: procedures, subscriptions, eventos y errores. Enfocado en fase de día (revelación atómica) y decisiones colectivas. Identidad, reconexión y persistencia cerradas (`ARCH-9`); quedan `OQ-API-2/5/6`.
 > **Alcance:** define **qué mensajes** cruzan el WebSocket entre cliente y servidor y **con qué semántica**, no su implementación. El motor de reglas vive en `Backend.md` (`BE-*`, pendiente); el estado del juego, en `GameRules.md` (`GR-*`). Los tipos de datos de carta son de `CardData.md` (`CD-*`).
 > **Autoridad:** el backend es la **autoridad única** (`ARCH-1.3`). Todo intent del cliente es una **intención**, no un hecho: el servidor valida y decide. El cliente puede deshabilitar afordancias por UX, pero nunca aplica reglas.
 
@@ -20,7 +20,7 @@ IDs estables `API-<sección>.<número>`. No se renumeran ni se reutilizan; un pr
 ## API-2. Sesión, sala y jugadores
 
 - **API-2.1** El juego se organiza en **salas** (`Room`), cada una con **una partida** (`Game`). Una sala tiene un código de acceso.
-- **API-2.2** Cada conexión se asocia a un **jugador** (`Player`) dentro de una sala. La **política de identidad** (autenticación vs identificador efímero de sesión) es `OQ-ARCH-2`: este protocolo asume un `playerId` estable durante la partida y no fija cómo se emite.
+- **API-2.2** Cada conexión se asocia a un **jugador** (`Player`) dentro de una sala. La **política de identidad** está fijada en `ARCH-9.3`/`ARCH-9.4` (resuelto `OQ-ARCH-2`): **sesión efímera sin autenticación**. El cliente conserva un `playerId` opaco y lo presenta al conectar; ese token es la única credencial y basta para recuperar su silla.
 - **API-2.3** **Un jugador = un grupo** (`Group`) en la v1: jugador y grupo **coinciden 1:1** (resuelve `OQ-API-1`). Nos apartamos deliberadamente de la variante de 4 jugadores / 3 grupos con grupo compartido (`GR-1.4`), **no soportada en v1**. El estado se indexa por grupo, cada grupo tiene exactamente un jugador, y vistas e intents se emiten por jugador.
 - **API-2.4** Procedures de sala (mutations): `room.create`, `room.join({ code })`, `room.leave`. `room.start` inicia la partida (baraja y reparte con semilla, `ARCH-4.6`, `GR-3`). El detalle de lobby es `OQ-API-2`.
 
@@ -28,7 +28,8 @@ IDs estables `API-<sección>.<número>`. No se renumeran ni se reutilizan; un pr
 
 - **API-3.1** Tras entrar en la sala, el cliente abre **una** subscription de partida (`API-12`) que emite un **snapshot inicial** de su vista (`API-4`) y luego eventos incrementales.
 - **API-3.2** **Resync:** el cliente puede pedir en cualquier momento la vista completa con la query `game.getState` (`API-4`), p. ej. tras una reconexión de WS. La vista es **autosuficiente**: un snapshot basta para reconstruir la UI sin historial.
-- **API-3.3** **Reconexión de jugador** (`OQ-ARCH-5`): qué ocurre si un jugador cae **a mitad de una fase de día simultánea** (la partida espera, se pausa, hay sustitución) es política abierta. El protocolo solo garantiza que, al volver, `game.getState` reconstruye su vista; la política de espera se define al cerrar `OQ-ARCH-5`.
+- **API-3.3** **Reconexión de jugador** (`ARCH-9.5`, resuelto `OQ-ARCH-5`): si un jugador cae a mitad de una fase de día simultánea, **la partida espera**. Su silla se conserva; no hay sustitución, ni expulsión, ni *timeout*: el resto no puede pasar de la revelación atómica (`API-7`) hasta que él elija. Al volver, presenta su `playerId` y `game.getState` reconstruye su vista.
+- **API-3.4** Como el estado se persiste (`ARCH-9.1`), la reconexión funciona igual tras una caída **del servidor** que del cliente: `game.getState` sigue siendo autoritativo tras un reinicio del backend.
 
 ## API-4. Vista por jugador (serialización)
 
@@ -127,9 +128,9 @@ La subscription de partida emite una **unión discriminada** de eventos. Todos s
 ## Cuestiones abiertas
 
 - **OQ-API-1** [RESUELTA → `API-2.3`] **Grupos compartidos** (`GR-1.4`): decidido — **1 jugador = 1 grupo** en la v1; jugador y grupo coinciden 1:1. La variante 4 jugadores / 3 grupos con grupo compartido **no se soporta**.
-- **OQ-API-2** **Lobby y ciclo de sala** (`API-2.4`): estados de sala (esperando/en juego/terminada), reconexión al lobby, elección de módulos (`GR-15.3`), número de grupos. Depende también de `OQ-ARCH-2`.
+- **OQ-API-2** **Lobby y ciclo de sala** (`API-2.4`): estados de sala (esperando/en juego/terminada), reconexión al lobby, elección de módulos (`GR-15.3`), número de grupos. La identidad ya no bloquea (`ARCH-9.3`); queda el ciclo de vida de la sala.
 - **OQ-API-3** [RESUELTA → `API-4.4`] **Dorsos ajenos:** decidido — se ven los dorsos de las **3 cartas superiores** de cada compañero (las candidatas a elegir, `GR-5.2`), no el resto de su mazo ni ninguna cara.
 - **OQ-API-4** [RESUELTA → `API-5.2`, `API-9`] **Quórum de decisión colectiva:** decidido — **no hay quórum ni votación**. Las decisiones son individuales, coordinadas por comunicación libre (`GR-1.2`) y serializadas por el servidor.
 - **OQ-API-5** **Formato de `stateChanged`** (`API-12.2`): ¿snapshot completo por cambio (simple, más tráfico) o diffs incrementales (menos tráfico, más complejidad)? Depende del tamaño real de `GameStateView`.
 - **OQ-API-6** **Granularidad de `day.resolveStep`** (`API-8.4`): ¿un intent por micro-elección (más idas y vueltas, más validable) o un intent compuesto por carta (menos mensajes, más difícil de validar parcialmente)? A afinar contra las opciones reales del corpus A/B.
-- **OQ-API-7** **Persistencia y autoridad del snapshot** (`OQ-ARCH-1`): si el estado se persiste (Postgres/Redis) o vive en memoria condiciona cómo se sirve `game.getState` tras caída del servidor, no solo del cliente.
+- **OQ-API-7** [RESUELTA → `API-3.4`, `ARCH-9.1`, `ARCH-9.7`] **Persistencia y autoridad del snapshot:** decidido — el estado **se persiste en Redis**, así que sobrevive al reinicio del backend. `game.getState` se sirve desde el repositorio de partida (puerto en `domain`, adaptador Redis en `infrastructure`, `ARCH-9.2`) y es autoritativo tanto tras una caída del cliente como del servidor.

@@ -44,12 +44,12 @@ Sin código. Un documento por dominio, cada uno con su prefijo de ID:
 
 | Spec | Prefijo | Alcance | Estado |
 |---|---|---|---|
-| `GameRules.md` | `GR-*` | Reglas del juego. Dominio puro, agnóstico de tecnología. | v1.0 ✅ |
-| `Architecture.md` | `ARCH-*` | Stack, capas, estructura de carpetas, infra, idioma, testing. | v1.0 ✅ |
-| `CardData.md` | `CD-*` | Datos de las cartas: requisitos, costes, recompensas, secretos. | v0.1 🚧 (esquema; sin corpus) |
+| `GameRules.md` | `GR-*` | Reglas del juego. Dominio puro, agnóstico de tecnología. | v1.1 ✅ |
+| `Architecture.md` | `ARCH-*` | Stack, capas, estructura de carpetas, infra, persistencia, sesión, idioma, testing. | v1.1 ✅ |
+| `CardData.md` | `CD-*` | Datos de las cartas: requisitos, costes, recompensas, secretos. | v0.2 🚧 (esquema; sin corpus) |
 | `Backend.md` | `BE-*` | Módulos, casos de uso, máquina de estados, persistencia. | Pendiente |
 | `Frontend.md` | `FE-*` | Estructura del cliente, estado de UI, flujos de interacción. | Pendiente |
-| `Protocol.md` | `API-*` | Router tRPC: procedures, subscriptions, eventos, errores. | v0.1 🚧 |
+| `Protocol.md` | `API-*` | Router tRPC: procedures, subscriptions, eventos, errores. | v0.2 🚧 |
 | `Components.md` | `CMP-*` | Componentización, jerarquía y contratos de componentes. | Pendiente |
 | `Styles.md` | `ST-*` | Sistema de diseño: tokens, tipografía, color, espaciado, temas. | Pendiente |
 
@@ -87,7 +87,21 @@ Specs de reglas y arquitectura cerradas. **Aún no se ha escrito código ni leva
 
 **Alcance v1 (`OQ-2`, resuelta):** motor genérico preparado para A–J; en v1 solo se cargan los datos de Base + módulos A y B.
 
-Cuestiones abiertas que bloquean el scaffolding: persistencia (`OQ-ARCH-1`), identidad de jugador (`OQ-ARCH-2`), monorepo/workspaces (`OQ-ARCH-3`), targets del Makefile y puertos (`OQ-ARCH-4`), reconexión (`OQ-ARCH-5`).
+**Todas las `OQ-ARCH` están cerradas (`Architecture.md` v1.1): el scaffolding ya no está bloqueado.** Decisiones vigentes:
+
+| Decisión | Elección | ID |
+|---|---|---|
+| Persistencia | **Redis** (sin BD relacional), detrás de un puerto de repositorio | `ARCH-9.1`, `ARCH-9.2` |
+| Identidad | **Sesión efímera**: código de sala + `playerId` opaco. Sin auth | `ARCH-9.3` |
+| Reconexión | **La partida espera**. Sin sustitución ni *timeout* | `ARCH-9.5` |
+| Monorepo | **`pnpm` workspaces**; `shared` es un paquete real | `ARCH-5.6` |
+| Makefile | `up`/`down`/`build`/`logs`/`sh`/`test` | `ARCH-6.7` |
+| Puertos | frontend 5173, backend 3000, redis 6379 | `ARCH-6.8` |
+| Habilidades | `Strength` / `Awareness` / **`Craftsmanship`** (no `Skill` ni `Dexterity`) | `ARCH-3.3` |
+
+**El dado NO es numérico.** Es un dado de **símbolos** de 6 caras, cada una un par `{habilidad, 1|2}`. Cada cara **aumenta el requisito de esa habilidad concreta**, no un umbral genérico: sacar «2 percepción» sube el requisito de percepción en +2 y no toca fuerza ni destreza. Una tirada puede **introducir un requisito que la carta no pedía**. El número de dados (`0`/`1`/`2`) lo pide **cada acción**, no el módulo (`GR-11.5`–`GR-11.9`, `CD-5.3`, `CD-5.12`).
+
+Siguiente spec: **`Backend.md` (`BE-*`)** — la máquina de estados día/noche que ejecuta el protocolo. Al escribirla se cierran `OQ-API-5` y `OQ-API-6`. **Nada la bloquea.**
 
 ## Nota legal
 

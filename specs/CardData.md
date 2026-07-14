@@ -1,6 +1,6 @@
 # CardData — Paleo
 
-> **Estado:** v0.1 — Esquema de datos (*action schema*). Sin corpus de cartas todavía.
+> **Estado:** v0.2 — Esquema de datos (*action schema*). Modelo de dados cerrado (`CD-5.12`, `OQ-CD-5`). Sin corpus de cartas todavía.
 > **Alcance:** define **la forma de una carta y de sus acciones** (requisitos, costes, recompensas, efectos, banderas): el vocabulario con el que el motor (`Backend.md`) y el protocolo (`Protocol.md`) se comunican sobre cartas. **No** contiene los datos concretos de las 124 cartas de módulo ni de las 222 del juego: eso es el *corpus*, diferido por copyright (`OQ-1` en `GameRules.md`).
 > **Relación con las reglas:** cada elemento del esquema referencia la regla de dominio que lo motiva (`GR-*`). Si una regla no está cubierta aquí, el esquema es incompleto: se amplía la spec antes que el código (`CLAUDE.md` §metodología).
 
@@ -55,7 +55,7 @@ El corazón del esquema. Una carta de `kind` `action`/`hazard`/`mission` ofrece 
 
 - **CD-5.1** `requirements` — condiciones que deben **cumplirse** para poder resolver la opción, sin gastarse (`CD-6`). Si no se cumplen (ni con ayuda ni con dados), la opción no es legal.
 - **CD-5.2** `costs` — lo que hay que **pagar** para resolver (`CD-7`). Si no se puede o no se quiere pagar, la opción no se resuelve (`GR-7.2`).
-- **CD-5.3** `dice` — número de dados a tirar, opcional (`GR-11.2`). Los dados **aumentan los requisitos de habilidad** de la opción; se declara ayuda **antes** de tirar (`GR-11.3`). El azar se inyecta (`ARCH-4.6`).
+- **CD-5.3** `dice` — **número de dados a tirar**: `0` (sin tirada, por defecto), `1` o `2` (`GR-11.2`, `GR-11.7`). Es propiedad **de la opción**, no del módulo ni del *setup*: dos opciones de la misma partida pueden pedir distinto número de dados. Los dados **aumentan los requisitos de habilidad** de la opción (`CD-5.12`); se declara ayuda **antes** de tirar (`GR-11.3`). El azar se inyecta (`ARCH-4.6`).
 - **CD-5.4** `rewards` — lo que se **obtiene** al resolver con éxito (`CD-8`).
 - **CD-5.5** `effects` — pérdidas **impuestas** por una opción negativa (heridas, calaveras, pagos forzosos), con o sin compensación parcial (`CD-9`, `GR-6.7`).
 - **CD-5.6** `polarity` — `positive` | `negative`. Una opción negativa (`GR-6.7`) normalmente no da recompensa. Relevante para `GR-6.5`/`GR-11.4`: cuando una acción se vuelve irresoluble, hay que caer en una opción `negative` de la misma carta si existe.
@@ -64,12 +64,14 @@ El corazón del esquema. Una carta de `kind` `action`/`hazard`/`mission` ofrece 
 - **CD-5.9** `permanent` — booleano. Si `true`, la carta queda en juego y la opción puede **reactivarse** sin consumir la opción del turno (`GR-14.5`); su activación puede requerir gastar la opción `help` (`GR-14.6`). Implica `disposal: keep`.
 - **CD-5.10** `timing` — `day` (por defecto) o `night`. Las opciones bajo símbolo de luna se resuelven en la fase de noche (`GR-12.3`, `GR-12.7`). Una misma carta puede tener opciones de día y de noche.
 - **CD-5.11** `secretRef` — referencia numérica opcional a una carta de secreto que esta opción revela como recompensa (`GR-14.1`; ver también `CD-8`).
+- **CD-5.12** **Caras del dado** (`GR-11.5`). El dado es de **símbolos**, no numérico: 6 caras, cada una un par `{ ability, amount }` con `ability ∈ {strength, awareness, craftsmanship}` y `amount ∈ {1, 2}`. Cada cara **aumenta el requisito de esa habilidad concreta** en esa cantidad (`GR-11.6`); no es un modificador genérico. Con 2 dados, ambos resultados se **acumulan**: se suman si coinciden en habilidad, y suben dos requisitos a la vez si no (`GR-11.8`).
+  **Consecuencia para el motor:** la tirada transforma el **vector de requisitos** de la opción, y puede **introducir un requisito que la carta no pedía** — una opción sin requisito de destreza puede acabar exigiéndola. La legalidad (`CD-6.3`) se evalúa siempre contra el requisito **ya aumentado**, nunca contra el impreso en la carta.
 
 ## CD-6. Vocabulario de requisitos (`requirements`)
 
 No se pagan ni se gastan: basta con tenerlos (`GR-7.1`). Una opción puede tener varios, todos exigidos (AND):
 
-- **CD-6.1** `ability` — umbral de habilidad: `{ ability: strength|awareness|skill, amount: n }`. Se suman las de **todas las personas del grupo** y de los grupos que ayuden (`GR-7.1`, `GR-8.2`). Los dados suman al umbral requerido (`GR-11.2`).
+- **CD-6.1** `ability` — umbral de habilidad: `{ ability: strength|awareness|craftsmanship, amount: n }` (`ARCH-3.3`). Se suman las de **todas las personas del grupo** y de los grupos que ayuden (`GR-7.1`, `GR-8.2`). Los dados suman al umbral requerido (`GR-11.2`).
 - **CD-6.2** `possess` — exige **poseer** algo sin gastarlo: p. ej. una `tent` (`GR-10.8`), una herramienta concreta, o cierto estado del grupo. Distinto de pagarlo (`CD-7`).
 - **CD-6.3** Los requisitos determinan la **legalidad** de la opción (autoridad del backend, `ARCH-1.3`), y son la base de las afordancias que el frontend puede deshabilitar por UX sin duplicar reglas.
 
@@ -110,7 +112,7 @@ Pérdidas impuestas por opciones `negative` (`GR-6.7`). No se eligen: se sufren 
 
 ## CD-10. Datos de persona (`kind: person`)
 
-- **CD-10.1** `abilities` — habilidades que aporta al grupo: cantidades de `strength`/`awareness`/`skill` (`GR-9.1`, `GR-7.1`).
+- **CD-10.1** `abilities` — habilidades que aporta al grupo: cantidades de `strength`/`awareness`/`craftsmanship` (`GR-9.1`, `GR-7.1`, `ARCH-3.3`).
 - **CD-10.2** `hearts` — número de espacios de corazón (capacidad de heridas antes de morir) (`GR-9.1`, `GR-9.3`).
 - **CD-10.3** `grantsTool` — herramienta otorgada **una única vez** al unirse al grupo; se conserva aunque la persona muera (`GR-10.4`).
 
@@ -125,6 +127,8 @@ Pérdidas impuestas por opciones `negative` (`GR-6.7`). No se eligen: se sufren 
 - **CD-12.1** El corpus debe declarar, por módulo, qué cartas **se retiran** antes de barajar (`GR-3.5`, `GR-15.4`) y qué **carta de misión** aporta (`GR-15.5`). Es metadato de composición, no de carta individual.
 - **CD-12.2** Reglas propias de módulo (p. ej. las balsas del módulo H, `GR-10.9`) pueden requerir **vocabulario adicional** en este esquema. Se añaden como `CD-*` nuevos cuando se cargue ese módulo, no antes.
 - **CD-12.3** La v1 solo carga composición de `base` + `A` + `B` (`OQ-2`, resuelta). El esquema no lo asume (`CD-1.2`).
+- **CD-12.4** `maxDice` — máximo de dados que alguna carta del módulo puede pedir (`GR-11.9`, `GR-15.6`). Es **informativo, para la preparación** (cuántos dados poner en la mesa); **no** es autoritativo en resolución: la cantidad real de cada tirada la dice la opción (`CD-5.3`). Con varios módulos, la preparación usa el **máximo** de los anunciados.
+  **Nota de modelado:** `maxDice` es **derivable** del corpus — es `max(dice)` sobre las opciones de las cartas del módulo. Conviene **calcularlo, no almacenarlo**; si se almacena, debe validarse contra el corpus, o quedará desincronizado en cuanto cambie una carta.
 
 ---
 
@@ -134,6 +138,7 @@ Pérdidas impuestas por opciones `negative` (`GR-6.7`). No se eligen: se sufren 
 - **OQ-CD-2** **Encadenamiento de acciones:** algunas cartas de módulo pueden encadenar efectos (resolver A habilita B) más allá de secretos. ¿El esquema necesita una noción de *secuencia* o basta con `secretRef` + `place`? A confirmar al ver el corpus de A/B.
 - **OQ-CD-3** **Acciones alternativas de cartas permanentes** (`GR-14.6`): el reparto de costes de descarte entre dueño del mazo y activador necesita que el esquema distinga "quién paga cada coste". `CD-7.4` lo marca a alto nivel; el detalle exacto se cierra junto con `Protocol.md` (`ARCH-7.4`).
 - **OQ-CD-4** **Fuente del corpus y copyright** (`OQ-1`): formato del dataset (JSON/YAML), ubicación (¿`shared/`?, ¿`backend/`?) y estrategia legal para no distribuir texto con copyright. Bloquea la carga de datos reales, no el esquema.
-- **OQ-CD-5** **Dados y umbral:** confirmar el modelo exacto de `GR-11.2` (¿los dados suman al requisito, o se comparan contra la suma de habilidades?) y el rango de caras del dado. Afecta a `CD-5.3` y a la resolución en `Backend.md`.
+- **OQ-CD-5** [RESUELTA → `GR-11.5`–`GR-11.9`, `CD-5.3`, `CD-5.12`] **Dados y umbral:** decidido — el dado es de **símbolos**, 6 caras, cada una `{ability, amount}` con `amount ∈ {1,2}` sobre las tres habilidades. Cada cara **aumenta el requisito de esa habilidad concreta**; no es un modificador numérico genérico. El **número de dados lo pide cada acción** (`dice: 0|1|2` en la opción, `CD-5.3`), no el módulo. Con 2 dados los resultados se **acumulan** (`GR-11.8`).
+- **OQ-CD-8** [RESUELTA → `GR-11.7`, `GR-11.9`, `CD-5.3`, `CD-12.4`] **Composición de dados entre módulos:** la pregunta partía de una premisa falsa (que el módulo *fijaba* el número de dados de la partida). No es así: **el número de dados lo pide cada acción** (`GR-11.7`), y el módulo solo **anuncia el máximo** que alguna de sus cartas podrá pedir, como ayuda de preparación (`GR-11.9`). Por tanto **no hay conflicto que resolver** entre módulos: cada carta tira lo que pide. Cuando hay varios módulos, la preparación toma el **máximo** de los anunciados.
 - **OQ-CD-6** **Peligro en dorsos de módulo:** por defecto un dorso de módulo (`CD-3.4`) es no peligroso y solo `red` dispara heridas al descartarse (`GR-7.6`). ¿Existe algún módulo con un dorso propio que **cuente como peligro** (dispare heridas / no se pueda ignorar)? Si es así, la semántica de peligro deja de estar atada al literal `red` y pasa a ser una **propiedad** del dorso (`isDanger`). A confirmar al cargar módulos más allá de A/B.
 - **OQ-CD-7** [RESUELTA] **Coste del crafteo en la hoguera vs `GR-10.5`:** decidido — la opción `craft` **no añade coste propio**; lo que se paga es la **receta del objeto** (definida en su idea, `CD-11.1`). Además, el crafteo solo está disponible cuando una carta ofrece la acción de crafteo (`GR-10.5`, `CD-4.9`), no en cualquier momento. Sin contradicción con `GR-10.5`.

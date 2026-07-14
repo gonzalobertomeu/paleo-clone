@@ -1,6 +1,6 @@
 # Architecture — Paleo
 
-> **Estado:** v1.0 — Stack y estructura definidos. Sin código todavía.
+> **Estado:** v1.1 — Stack, estructura, persistencia, sesión e infra definidos. Todas las `OQ-ARCH` cerradas. Sin código todavía.
 > **Alcance:** decisiones transversales de arquitectura: stack, capas, estructura de carpetas, infraestructura local y convenciones. Las reglas del juego están en `GameRules.md` (`GR-*`). El contrato de mensajes vivirá en `Protocol.md` (`API-*`).
 
 ## Convención de identificadores
@@ -47,7 +47,7 @@ IDs estables `ARCH-<sección>.<número>`. No se renumeran ni se reutilizan; una 
 | herida | `Wound` |
 | calavera | `Skull` |
 | ficha de victoria | `VictoryToken` |
-| habilidad (fuerza/percepción/destreza) | `Ability` (`Strength`/`Awareness`/`Skill`) † |
+| habilidad (fuerza/percepción/destreza) | `Ability` (`Strength`/`Awareness`/`Craftsmanship`) † |
 | banco de trabajo | `Workbench` |
 | cementerio | `Cemetery` |
 | almacén | `Storage` |
@@ -59,7 +59,14 @@ IDs estables `ARCH-<sección>.<número>`. No se renumeran ni se reutilizan; una 
 | dormir | `sleep` |
 | craftear | `craft` |
 
-† `Skill` para *destreza* colisiona semánticamente con "ability" (skill ≈ ability en inglés) y puede leerse raro como `Ability.Skill`. Alternativa a evaluar: `Dexterity`. Ver `OQ-ARCH-6`.
+† **Nota sobre *destreza*** (`OQ-ARCH-6`, resuelta). Se descartaron tres candidatos antes de `Craftsmanship`:
+- `Skill` colisiona semánticamente con "ability" (skill ≈ ability en inglés): `Ability.Skill` se lee redundante.
+- `Dexterity` connota **agilidad**, no fabricación, que es el uso real de la destreza en Paleo.
+- `Tool`/`Tools` colisiona con `Tool` = **herramienta**, el objeto crafteable (`GR-10`); dos conceptos distintos separados solo por una `s`. `Worker` colisiona con `Person`.
+
+`Craftsmanship` nombra la aptitud de fabricar sin chocar con `Tool` (el objeto) ni con `craft` (el verbo), y forma familia con él: se usa `Craftsmanship` para `craft`.
+
+†† **Nota sobre *fuerza*.** Se mantiene `Strength` y se descartan `Attack`/`Hunting`: nombran un **uso** (cazar, pelear) y no la **capacidad**. La fuerza también se exige para acarrear, empujar o escalar; un nombre atado a la caza mentiría en esas cartas.
 
 ## ARCH-4. Clean Architecture
 
@@ -102,6 +109,9 @@ paleo/
 - **ARCH-5.3** **Dependencias permitidas:** `frontend → shared`, `backend → shared`. **Prohibidas:** `frontend → backend`, `backend → frontend`, y cualquier importación desde `shared` hacia `frontend` o `backend`.
 - **ARCH-5.4** `shared/` contiene únicamente **contratos**: tipos del protocolo, DTOs y tipos de dominio expuestos al cliente. Sin lógica de reglas: el motor vive en `backend/` (`ARCH-1.3`).
 - **ARCH-5.5** La estructura interna de `backend/` sigue `ARCH-4` (módulos con `domain`/`application`/`infrastructure`). La estructura interna de `frontend/` se define en `Frontend.md` y `Components.md`.
+- **ARCH-5.6** **Monorepo con `pnpm` workspaces** (resuelve `OQ-ARCH-3`). `frontend`, `backend` y `shared` son **paquetes reales** del workspace, y `shared` se consume como dependencia declarada, no por paths de TypeScript.
+  **Motivo:** el gestor de paquetes hace cumplir `ARCH-5.3` por sí solo — un import prohibido (`frontend → backend`) falla al resolver porque no es una dependencia declarada, en lugar de compilar silenciosamente. `pnpm` sobre `npm` por su resolución estricta: sin *hoisting*, no existen dependencias fantasma.
+- **ARCH-5.7** El workspace se declara en `pnpm-workspace.yaml` en la **raíz**, junto al `Makefile` (`ARCH-5.2`). Los `package.json` de cada paquete viven en `project/<paquete>/`.
 
 ## ARCH-6. Infraestructura local
 
@@ -109,7 +119,20 @@ paleo/
 - **ARCH-6.2** Los **Dockerfiles** necesarios (backend, frontend y los que se requieran) viven en `infra/`.
 - **ARCH-6.3** El desarrollo local corre **dentro de contenedores**, con hot reload: código montado como volumen para frontend (Vite HMR) y backend (watch de Nest).
 - **ARCH-6.4** El `Makefile` de la raíz es el **único punto de entrada** para operar el entorno. Ningún comando de docker compose se documenta o se ejecuta directamente en flujos normales de trabajo.
-- **ARCH-6.5** Comandos mínimos que expone el `Makefile`: levantar, parar, reconstruir, ver logs, abrir shell en un servicio, y ejecutar tests. (Nombres exactos: `OQ-ARCH-4`.)
+- **ARCH-6.5** Comandos mínimos que expone el `Makefile`: levantar, parar, reconstruir, ver logs, abrir shell en un servicio, y ejecutar tests. Nombres exactos en `ARCH-6.7`.
+- **ARCH-6.6** **Servicios de `compose.yaml`:** `frontend`, `backend` y `redis` (`ARCH-9.1`). No hay servicio de base de datos relacional.
+- **ARCH-6.7** **Targets del `Makefile`** (resuelve `OQ-ARCH-4`), verbos cortos alineados con la nomenclatura de docker compose:
+
+| Target | Efecto |
+|---|---|
+| `make up` | Levanta todos los servicios |
+| `make down` | Para y limpia |
+| `make build` | Reconstruye las imágenes |
+| `make logs` | Logs de todos los servicios |
+| `make sh s=<servicio>` | Abre una shell en un servicio |
+| `make test` | Ejecuta los tests |
+
+- **ARCH-6.8** **Puertos expuestos:** `frontend` **5173** (por defecto de Vite), `backend` **3000** (por defecto de Nest), `redis` **6379**.
 
 ## ARCH-7. Información oculta y multijugador
 
@@ -124,13 +147,27 @@ paleo/
 - **ARCH-8.2** El dominio se testea **sin infraestructura**: sin contenedores, sin red, sin base de datos.
 - **ARCH-8.3** Gracias a `ARCH-4.6`, las partidas son **reproducibles con una semilla**: los tests de integración pueden replicar partidas completas de forma determinista.
 
+## ARCH-9. Persistencia, sesión y reconexión
+
+- **ARCH-9.1** **El estado de partida se persiste en Redis** (resuelve `OQ-ARCH-1`). No hay base de datos relacional: el estado de una partida es, en el fondo, un documento único, y no se necesitan consultas ni historial en v1.
+  **Consecuencia:** el estado **sobrevive a un reinicio del backend**, no solo a una caída del cliente.
+- **ARCH-9.2** **La persistencia es un puerto, no una dependencia del dominio** (`ARCH-4.4`). El dominio declara una interfaz de repositorio de partida; el adaptador de Redis vive en `infrastructure`. El dominio sigue siendo puro y determinista (`ARCH-4.5`): no sabe que Redis existe.
+- **ARCH-9.3** **Identidad efímera, sin autenticación** (resuelve `OQ-ARCH-2`). No hay registro, contraseñas ni tabla de usuarios. Una sala se identifica por un **código de acceso** (`API-2.1`) y un jugador por un **`playerId` opaco** que el cliente conserva localmente y presenta al conectar.
+- **ARCH-9.4** El `playerId` es la **única credencial**: quien lo presenta recupera esa silla. Es un identificador de sesión, no una identidad verificada; es adecuado para partidas privadas entre personas que ya se conocen, y **no** resiste un atacante que adivine o robe el token. Elevar esto a autenticación real es un cambio de producto, no un detalle de implementación.
+- **ARCH-9.5** **Reconexión: la partida espera** (resuelve `OQ-ARCH-5`). Si un jugador se desconecta, **su silla se conserva** y la partida no avanza sin él. No hay sustitución, no hay expulsión y **no hay temporizador**.
+  **Motivo:** la fase de día es simultánea con revelación atómica (`ARCH-7.3`, `GR-5.6`): el resto no puede pasar de la revelación hasta que él elija. Y en un cooperativo, una elección automática por *timeout* puede perder la partida de los demás; el juego físico tampoco tiene reloj.
+- **ARCH-9.6** Al reconectar, el cliente presenta su `playerId` y **rehace la vista completa** con `game.getState` (`API-3.2`). La vista por jugador es **autosuficiente**: un snapshot basta para reconstruir la UI sin reproducir historial de eventos.
+- **ARCH-9.7** Gracias a `ARCH-9.1`, la reconexión funciona igual tras una caída **del servidor** que del cliente. (Resuelve `OQ-API-7` de `Protocol.md`.)
+
 ---
 
 ## Cuestiones abiertas
 
-- **OQ-ARCH-1** **Persistencia:** ¿el estado de partida vive solo en memoria del backend, o se persiste (Postgres/Redis)? Condiciona `infra/compose.yaml` y si hace falta un servicio de base de datos.
-- **OQ-ARCH-2** **Identidad de jugador:** ¿hay autenticación, o basta con salas por código y un identificador efímero de sesión?
-- **OQ-ARCH-3** **Monorepo:** ¿workspaces (pnpm/npm) con `shared` como paquete, o tres proyectos independientes con paths de TS? Condiciona los Dockerfiles.
-- **OQ-ARCH-4** **Makefile:** nombres exactos de los targets y puertos expuestos (frontend, backend).
-- **OQ-ARCH-5** **Reconexión:** ¿qué pasa si un jugador se desconecta a mitad de una fase de día? ¿La partida espera, se pausa, hay sustitución?
-- **OQ-ARCH-6** **Nomenclatura de `Skill`:** *destreza* → `Skill` colisiona con "ability". ¿Se mantiene `Skill` o se renombra a `Dexterity` en el glosario (`ARCH-3.3`)? Barato de cambiar ahora, caro tras escribir código.
+*(Ninguna abierta. Se conservan los IDs de las resueltas: nunca se renumeran ni se reutilizan.)*
+
+- **OQ-ARCH-1** [RESUELTA → `ARCH-9.1`, `ARCH-9.2`] **Persistencia:** decidido — **Redis**, detrás de un puerto de repositorio. Sin base de datos relacional. `compose.yaml` incorpora un servicio `redis` (`ARCH-6.6`).
+- **OQ-ARCH-2** [RESUELTA → `ARCH-9.3`, `ARCH-9.4`] **Identidad de jugador:** decidido — **sesión efímera**, sin autenticación: código de sala + `playerId` opaco conservado por el cliente.
+- **OQ-ARCH-3** [RESUELTA → `ARCH-5.6`, `ARCH-5.7`] **Monorepo:** decidido — **`pnpm` workspaces** con `shared` como paquete real, para que la regla de dependencias (`ARCH-5.3`) la haga cumplir el gestor de paquetes.
+- **OQ-ARCH-4** [RESUELTA → `ARCH-6.7`, `ARCH-6.8`] **Makefile:** decidido — targets `up`/`down`/`build`/`logs`/`sh`/`test`; puertos 5173 (frontend), 3000 (backend), 6379 (redis).
+- **OQ-ARCH-5** [RESUELTA → `ARCH-9.5`, `ARCH-9.6`] **Reconexión:** decidido — **la partida espera**. La silla se conserva, sin sustitución ni *timeout*; al volver, resync por snapshot completo.
+- **OQ-ARCH-6** [RESUELTA → `ARCH-3.3`] **Nomenclatura de *destreza*:** decidido — **`Craftsmanship`**. Se descartan `Skill` (redundante con "ability"), `Dexterity` (connota agilidad, no fabricación) y `Tool`/`Tools` (colisiona con la herramienta crafteable). *Fuerza* se mantiene como **`Strength`**: nombra la capacidad, no su uso.
