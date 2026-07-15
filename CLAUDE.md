@@ -47,9 +47,9 @@ Sin código. Un documento por dominio, cada uno con su prefijo de ID:
 | `GameRules.md` | `GR-*` | Reglas del juego. Dominio puro, agnóstico de tecnología. | v1.1 ✅ |
 | `Architecture.md` | `ARCH-*` | Stack, capas, estructura de carpetas, infra, persistencia, sesión, idioma, testing. | v1.1 ✅ |
 | `CardData.md` | `CD-*` | Datos de las cartas: requisitos, costes, recompensas, secretos. | v0.2 🚧 (esquema; sin corpus) |
-| `Backend.md` | `BE-*` | Módulos, casos de uso, máquina de estados, persistencia. | Pendiente |
+| `Backend.md` | `BE-*` | Módulos (`room`/`game`/`view`), reductor puro, máquina de estados día/noche, resolución paso a paso, azar sembrado, persistencia. | v0.1 ✅ |
 | `Frontend.md` | `FE-*` | Estructura del cliente, estado de UI, flujos de interacción. | Pendiente |
-| `Protocol.md` | `API-*` | Router tRPC: procedures, subscriptions, eventos, errores. | v0.2 🚧 |
+| `Protocol.md` | `API-*` | Router tRPC: procedures, subscriptions, eventos, errores. | v0.3 🚧 |
 | `Components.md` | `CMP-*` | Componentización, jerarquía y contratos de componentes. | Pendiente |
 | `Styles.md` | `ST-*` | Sistema de diseño: tokens, tipografía, color, espaciado, temas. | Pendiente |
 
@@ -101,7 +101,9 @@ Specs de reglas y arquitectura cerradas. **Aún no se ha escrito código ni leva
 
 **El dado NO es numérico.** Es un dado de **símbolos** de 6 caras, cada una un par `{habilidad, 1|2}`. Cada cara **aumenta el requisito de esa habilidad concreta**, no un umbral genérico: sacar «2 percepción» sube el requisito de percepción en +2 y no toca fuerza ni destreza. Una tirada puede **introducir un requisito que la carta no pedía**. El número de dados (`0`/`1`/`2`) lo pide **cada acción**, no el módulo (`GR-11.5`–`GR-11.9`, `CD-5.3`, `CD-5.12`).
 
-Siguiente spec: **`Backend.md` (`BE-*`)** — la máquina de estados día/noche que ejecuta el protocolo. Al escribirla se cierran `OQ-API-5` y `OQ-API-6`. **Nada la bloquea.**
+**`Backend.md` (`BE-*`) cerrada (v0.1).** Tres módulos (`room`/`game`/`view`), reductor puro `reduce(state, command) → {state, events}`, máquina de estados día/noche, resolución **paso a paso dirigida por servidor** (`pendingStep`), azar **semilla + contador** y persistencia íntegra en Redis. Cerró `OQ-API-5` (`stateChanged` = **snapshot completo**) y `OQ-API-6` (`resolveStep` = **un paso por micro-elección**).
+
+Siguiente spec: **`Frontend.md` (`FE-*`)** o **`Components.md` (`CMP-*`)** — ya desbloqueadas al estar `Protocol` + `Backend` cerrados. Alternativa: escribir el **corpus A/B** (`OQ-1`/`OQ-CD-4`) o arrancar el **scaffolding** (`pnpm` workspace, `infra/`, módulos del backend).
 
 ## Nota legal
 
