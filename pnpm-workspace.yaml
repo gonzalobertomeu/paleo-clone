@@ -1,0 +1,7 @@
+# pnpm workspace (ARCH-5.6, ARCH-5.7).
+# `shared` es un paquete real: un import prohibido (frontend -> backend, ARCH-5.3)
+# falla al resolver porque no es una dependencia declarada.
+packages:
+  - "project/shared"
+  - "project/backend"
+  - "project/frontend"
