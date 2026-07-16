@@ -57,16 +57,27 @@ Próximo paso recomendado (a elegir): **`Frontend.md`** o **`Components.md`** (y
 ### Dominio
 - [ ] `OQ-1` (`GameRules`) — Corpus de las 124 cartas de módulo + implicaciones de copyright
 
-## Código e infra (nada empezado, ya desbloqueado)
+## Código e infra (rama `coding`)
 
-- [ ] `pnpm-workspace.yaml` en la raíz (`ARCH-5.7`)
-- [ ] `infra/` — `compose.yaml` con servicios `frontend`, `backend` y `redis` (`ARCH-6.6`) + Dockerfiles
-- [ ] `Makefile` raíz — targets `up`/`down`/`build`/`logs`/`sh`/`test` (`ARCH-6.7`)
-- [ ] `project/shared/` — tipos de vista + DTOs de intent (contratos, sin lógica)
-- [ ] `project/backend/` — módulos Clean Architecture (`domain`/`application`/`infrastructure`), router tRPC, puerto de azar sembrado, puerto de repositorio + adaptador Redis (`ARCH-9.2`)
-- [ ] `project/frontend/` — SPA React + Vite
+Scaffolding y transporte hechos y verificados (`pnpm install`, typecheck, `nest build`, 5/5 tests, y una llamada WS end-to-end `game.getState → NOT_IMPLEMENTED`):
 
-> Nota de orden: con `Backend.md` cerrada, el scaffolding del backend ya tiene spec que seguir (`BE-2` módulos, `BE-4` puertos, `BE-10` persistencia). Los módulos se crean como `room`/`game`/`view`, cada uno con `domain`/`application`/`infrastructure` (`ARCH-4.2`).
+- [x] `pnpm-workspace.yaml` + raíz (`ARCH-5.6/5.7`), `.gitignore`, `.npmrc`, `tsconfig.base.json`
+- [x] `infra/` — `compose.yaml` (`frontend`/`backend`/`redis`, `ARCH-6.6/6.8`) + Dockerfiles de dev
+- [x] `Makefile` raíz — `up`/`down`/`build`/`logs`/`sh`/`test` (`ARCH-6.7`)
+- [x] `project/shared/` — glosario, `GameStateView` (`API-4`), intents (`zod`), eventos, errores, y **el contrato del router** (`API-1.5`: `AppService`/`TrpcContext`/`appRouter`)
+- [x] `project/backend/` — módulos `room`/`game`/`view` (`BE-2`); `game/domain` con `reduce` (esqueleto), `GameState`, puertos `Rng`/`GameRepository`; dados testeados (`GR-11`); adaptador tRPC/WS (`API-1`) sirviendo el router de `shared` con `StubAppService`
+- [x] `project/frontend/` — SPA React + Vite; cliente tRPC/WS que deriva `AppRouter` solo de `shared`
+
+Pendiente (siguiente carne, sobre `coding`):
+
+- [ ] **`game/domain`: la máquina de estados** — implementar `reduce` (`BE-5`): `day.chooseCard`, revelación atómica, resolución paso a paso (`BE-8`). Sustituye los stubs de `StubAppService`.
+- [ ] **`view`: `projectView`** — proyección por jugador con filtrado de info oculta (`BE-11`) + tests (`BE-15.4`).
+- [ ] **`game/application` + casos de uso reales** — cablear `reduce` + repositorio + publicación de vista/eventos; reemplazar `StubAppService` por la impl vía DI del módulo `game`.
+- [ ] **`GameRepository` adaptador Redis** (`BE-10`, `ARCH-9.2`) + puerto de azar como provider DI.
+- [ ] **Lobby / ciclo de sala** (`OQ-API-2`/`OQ-BE-4`): `room.*` real.
+- [ ] **HMR de `shared` en dev**: el backend lee `shared` desde `dist`; hoy se construye una vez al arrancar. Para live-reload, correr `pnpm --filter @paleo/shared dev` (tsc -w) junto al backend.
+
+> Nota: el contrato del router vive en `shared` (`API-1.5`); el backend implementa los resolvers (`AppService`). Así el cliente deriva `AppRouter` sin romper `frontend → shared` (`ARCH-5.3`).
 
 ## Recordatorio de método (SDD)
 
