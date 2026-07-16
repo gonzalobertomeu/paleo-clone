@@ -1,9 +1,17 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
+    // dist en CommonJS: es lo que consume el runtime CJS del backend (node dist).
+    // El frontend, en cambio, lee la fuente TS vía Vite (condición `default` -> src).
+    "module": "CommonJS",
+    "moduleResolution": "Node",
     "rootDir": "src",
     "outDir": "dist",
-    "noEmit": false
+    "noEmit": false,
+    // Se consumen los tipos desde la fuente (condición `types` -> src): no emitimos
+    // .d.ts, lo que además evita el TS2742 de tRPC al nombrar el tipo del router.
+    "declaration": false,
+    "sourceMap": false
   },
   "include": ["src"]
 }

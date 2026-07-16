@@ -38,9 +38,6 @@ importers:
       ws:
         specifier: ^8.18.0
         version: 8.21.1
-      zod:
-        specifier: ^3.24.1
-        version: 3.25.76
     devDependencies:
       '@nestjs/cli':
         specifier: ^10.4.9
@@ -63,6 +60,9 @@ importers:
       '@paleo/shared':
         specifier: workspace:*
         version: link:../shared
+      '@trpc/client':
+        specifier: ^11.0.0
+        version: 11.18.0(@trpc/server@11.18.0(typescript@5.9.3))(typescript@5.9.3)
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -87,6 +87,13 @@ importers:
         version: 5.4.21(@types/node@22.20.1)(terser@5.49.0)
 
   project/shared:
+    dependencies:
+      '@trpc/server':
+        specifier: ^11.0.0
+        version: 11.18.0(typescript@5.9.3)
+      zod:
+        specifier: ^3.24.1
+        version: 3.25.76
     devDependencies:
       typescript:
         specifier: ^5.6.3
@@ -568,6 +575,13 @@ packages:
 
   '@tokenizer/token@0.3.0':
     resolution: {integrity: sha512-OvjF+z51L3ov0OyAU0duzsYuvO01PH7x4t6DJx+guahgTnBHkhJdG7soQeTSFLWN3efnHyibZ4Z8l2EuWwJN3A==}
+
+  '@trpc/client@11.18.0':
+    resolution: {integrity: sha512-wOqeg3Fvl25V1ZisQhUD3K8G60ZJDlSGJNSyeXrLH24xAo5w6GSR2Kzb1cSNY9Y+IQ2YZvYGZstBU+V/ulo/ow==}
+    hasBin: true
+    peerDependencies:
+      '@trpc/server': 11.18.0
+      typescript: '>=5.7.2'
 
   '@trpc/server@11.18.0':
     resolution: {integrity: sha512-JAvXOuNTxgXjIDfQaOvDq1j66LMNfDJUH1IU7Slfn8EvRv2EkH6ehu3A7zpYhjO0syHHiYg77v2lG2JFJgvw7Q==}
@@ -2541,6 +2555,11 @@ snapshots:
       - supports-color
 
   '@tokenizer/token@0.3.0': {}
+
+  '@trpc/client@11.18.0(@trpc/server@11.18.0(typescript@5.9.3))(typescript@5.9.3)':
+    dependencies:
+      '@trpc/server': 11.18.0(typescript@5.9.3)
+      typescript: 5.9.3
 
   '@trpc/server@11.18.0(typescript@5.9.3)':
     dependencies:

@@ -1,42 +1,42 @@
-// DTOs de intent (API-5, API-1.3). Un intent es una INTENCIÓN, no un hecho:
-// el servidor valida y decide (ARCH-1.3). El router tRPC es el contrato único (ARCH-2.5);
-// estos tipos son normativos en semántica, la forma exacta vive en el router (API-1.2).
+import { z } from "zod";
 
-import type { GroupId } from "../domain/ids";
+// Esquemas de entrada de los intents (API-5, API-1.5). `zod` es la fuente ÚNICA:
+// valida en runtime en el backend y de él se infieren los tipos del contrato; no se
+// duplican a mano (API-1.2). Un intent es una INTENCIÓN, no un hecho: el servidor
+// valida y decide (ARCH-1.3).
 
 // --- Sala (API-2.4) ---
-export interface JoinRoomInput {
-  code: string;
-}
+export const joinRoomInput = z.object({ code: z.string() });
+export type JoinRoomInput = z.infer<typeof joinRoomInput>;
 
 // --- Día: elección (API-6) ---
-export interface ChooseCardInput {
-  // Índice (0..2) de las 3 superiores; las caras no se conocen, se elige por posición (API-6.1).
-  chosenIndex: number;
+export const chooseCardInput = z.object({
+  // Índice (0..2) de las 3 superiores; se elige por posición (API-6.1, GR-5.2).
+  chosenIndex: z.number().int().min(0),
   // Orden en que vuelven al tope las 2 no elegidas (GR-5.3).
-  returnOrder: [number, number];
-}
+  returnOrder: z.tuple([z.number().int(), z.number().int()]),
+});
+export type ChooseCardInput = z.infer<typeof chooseCardInput>;
 
 // --- Día: resolución (API-8) ---
-export type CardActionInput =
-  | { action: "resolveOption"; optionId: string } // API-8.1
-  | { action: "help"; targetGroupId: GroupId } // GR-8.1 / GR-14.6
-  | { action: "ignore" }; // GR-6.4 (ilegal en hazard/mission)
+export const cardActionInput = z.discriminatedUnion("action", [
+  z.object({ action: z.literal("resolveOption"), optionId: z.string() }), // API-8.1
+  z.object({ action: z.literal("help"), targetGroupId: z.string() }), // GR-8.1 / GR-14.6
+  z.object({ action: z.literal("ignore") }), // GR-6.4 (ilegal en hazard/mission)
+]);
+export type CardActionInput = z.infer<typeof cardActionInput>;
 
-export interface DeclareHelpInput {
-  targetGroupId: GroupId; // API-8.2; debe llegar antes de los dados (GR-11.3)
-}
+export const declareHelpInput = z.object({ targetGroupId: z.string() }); // API-8.2 (antes de dados, GR-11.3)
+export type DeclareHelpInput = z.infer<typeof declareHelpInput>;
 
 // Respuesta a un `pendingStep` dirigido por servidor (BE-8). El vocabulario exacto
 // de pasos se cierra con el corpus A/B (OQ-BE-1); aquí solo la envoltura.
-export interface ResolveStepInput {
-  stepId: string;
-  // payload discriminado por tipo de paso (assignWounds, payCost, ...). TODO(OQ-BE-1).
-  choice: unknown;
-}
+export const resolveStepInput = z.object({ stepId: z.string(), choice: z.unknown() });
+export type ResolveStepInput = z.infer<typeof resolveStepInput>;
 
 // --- Noche (API-10) ---
-export interface ChooseMissionActionInput {
-  missionCardId: string;
-  optionId: string;
-}
+export const chooseMissionActionInput = z.object({
+  missionCardId: z.string(),
+  optionId: z.string(),
+});
+export type ChooseMissionActionInput = z.infer<typeof chooseMissionActionInput>;

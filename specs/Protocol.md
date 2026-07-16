@@ -1,6 +1,6 @@
 # Protocol — Paleo
 
-> **Estado:** v0.3 — Contrato de mensajes: procedures, subscriptions, eventos y errores. Enfocado en fase de día (revelación atómica) y decisiones colectivas. Identidad, reconexión y persistencia cerradas (`ARCH-9`); `stateChanged` y `resolveStep` cerrados por `Backend.md` (`OQ-API-5`, `OQ-API-6`). Solo queda `OQ-API-2` (lobby).
+> **Estado:** v0.4 — Contrato de mensajes: procedures, subscriptions, eventos y errores. Enfocado en fase de día (revelación atómica) y decisiones colectivas. Identidad, reconexión y persistencia cerradas (`ARCH-9`); `stateChanged` y `resolveStep` cerrados por `Backend.md` (`OQ-API-5`, `OQ-API-6`). El **contrato del router vive en `shared`** (`API-1.5`). Solo queda `OQ-API-2` (lobby).
 > **Alcance:** define **qué mensajes** cruzan el WebSocket entre cliente y servidor y **con qué semántica**, no su implementación. El motor de reglas vive en `Backend.md` (`BE-*`, pendiente); el estado del juego, en `GameRules.md` (`GR-*`). Los tipos de datos de carta son de `CardData.md` (`CD-*`).
 > **Autoridad:** el backend es la **autoridad única** (`ARCH-1.3`). Todo intent del cliente es una **intención**, no un hecho: el servidor valida y decide. El cliente puede deshabilitar afordancias por UX, pero nunca aplica reglas.
 
@@ -13,9 +13,10 @@ IDs estables `API-<sección>.<número>`. No se renumeran ni se reutilizan; un pr
 ## API-1. Transporte y forma del contrato
 
 - **API-1.1** Transporte: **tRPC sobre WebSockets** (`ARCH-2.4`). Toda la interacción de partida —queries, mutations y subscriptions— va por WS; no hay HTTP polling.
-- **API-1.2** **Tipado extremo a extremo** (`ARCH-2.5`): el router de tRPC es la **única** definición del contrato. Los tipos de esta spec son **normativos en semántica**, no en sintaxis: la forma exacta (TS) vive en el router (`project/backend/`) y los DTOs compartidos en `project/shared/`. El cliente **deriva** sus tipos del router; no se duplican a mano.
+- **API-1.2** **Tipado extremo a extremo** (`ARCH-2.5`): el router de tRPC es la **única** definición del contrato. Los tipos de esta spec son **normativos en semántica**, no en sintaxis. El **contrato del router se define en `project/shared/`** (`API-1.5`) y el cliente **deriva** de él sus tipos; no se duplican a mano.
 - **API-1.3** **`shared/` expone solo tipos de vista y de intent** (`ARCH-5.4`): los DTOs de la **vista serializada por jugador** (`API-4`) y los payloads de intent/evento. **Nunca** el estado interno del dominio ni tipos con información oculta (`ARCH-7.2`). El modelo interno del backend no cruza el límite `shared/`.
 - **API-1.4** Tres clases de mensaje: **queries** (lectura sin efecto), **mutations** (intents que piden cambiar el estado) y **subscriptions** (flujo servidor→cliente de estado y eventos).
+- **API-1.5** **Dónde vive el router** (resuelve la tensión `ARCH-5.3` ↔ derivación de tipos). El **contrato del router** —namespaces, procedures, esquemas de entrada (`zod`) y tipos de entrada/salida— se define en **`shared`** y expone el tipo `AppRouter`. El **backend implementa los resolvers** mediante un **servicio inyectado en el contexto de tRPC** (`AppService`): los resolvers del router solo **delegan** en `ctx.app.*`. **Ninguna regla del juego vive en `shared`** (`ARCH-1.3`, `ARCH-5.4`): solo el contrato y esa delegación; toda la lógica (validación, `reduce`, persistencia) está en `backend` (`BE-*`). Así el **cliente deriva `AppRouter` de `shared`** y **nunca importa `backend`**, dejando intacta la barrera `frontend → shared` que `pnpm` hace cumplir (`ARCH-5.3`, `ARCH-5.6`). **Enmienda:** sustituye la redacción previa de `API-1.2`, que situaba la forma del router en `backend/`.
 
 ## API-2. Sesión, sala y jugadores
 

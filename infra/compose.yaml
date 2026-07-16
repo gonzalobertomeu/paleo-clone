@@ -7,6 +7,8 @@ services:
     build:
       context: ..
       dockerfile: infra/frontend.Dockerfile
+    # El frontend lee la fuente TS de `shared` vía Vite (condición `default` -> src),
+    # no necesita su dist.
     command: pnpm --filter @paleo/frontend dev --host
     ports:
       - "5173:5173"
@@ -20,7 +22,8 @@ services:
     build:
       context: ..
       dockerfile: infra/backend.Dockerfile
-    command: pnpm --filter @paleo/backend start:dev
+    # `shared` se consume en runtime desde dist: se construye antes de arrancar el watch.
+    command: sh -c "pnpm --filter @paleo/shared build && pnpm --filter @paleo/backend start:dev"
     ports:
       - "3000:3000"
     environment:
