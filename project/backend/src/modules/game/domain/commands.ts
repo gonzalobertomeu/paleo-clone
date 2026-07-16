@@ -8,7 +8,7 @@ interface CommandBase {
 }
 
 export type Command =
-  | (CommandBase & { type: "chooseCard"; chosenIndex: number; returnOrder: [number, number] }) // API-6.1
+  | (CommandBase & { type: "chooseCard"; chosenIndex: number; returnOrder: number[] }) // API-6.1 (returnOrder: permutación de las no elegidas; GR-5.5 admite <2 con menos de 3 cartas)
   | (CommandBase & { type: "sleepEarly" }) // API-6.3
   | (CommandBase & { type: "resolveOption"; optionId: string }) // API-8.1
   | (CommandBase & { type: "help"; targetGroupId: GroupId }) // API-8.1
