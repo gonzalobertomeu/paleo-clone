@@ -1,6 +1,6 @@
 # Architecture — Paleo
 
-> **Estado:** v1.1 — Stack, estructura, persistencia, sesión e infra definidos. Todas las `OQ-ARCH` cerradas. Sin código todavía.
+> **Estado:** v1.2 — Stack, estructura, persistencia, sesión e infra definidos. Todas las `OQ-ARCH` cerradas. Backend organizado en `src/modules/*` (negocio) y `src/libs/*` (técnico) (`ARCH-5.8`–`ARCH-5.11`).
 > **Alcance:** decisiones transversales de arquitectura: stack, capas, estructura de carpetas, infraestructura local y convenciones. Las reglas del juego están en `GameRules.md` (`GR-*`). El contrato de mensajes vivirá en `Protocol.md` (`API-*`).
 
 ## Convención de identificadores
@@ -83,7 +83,7 @@ IDs estables `ARCH-<sección>.<número>`. No se renumeran ni se reutilizan; una 
 - **ARCH-4.3** **Regla de dependencia:** las dependencias apuntan **siempre hacia adentro**.
   `infrastructure → application → domain`. **Nunca al revés.**
   `domain` no importa nada de `application` ni de `infrastructure`, ni de NestJS, ni de tRPC, ni de ninguna librería de I/O.
-- **ARCH-4.4** **Puertos y adaptadores:** todo lo que el dominio necesita del mundo exterior (persistencia, azar, tiempo, publicación de eventos) se declara como **interfaz en `domain`** y se implementa en `infrastructure`. La inyección de dependencias de NestJS vive únicamente en `infrastructure`.
+- **ARCH-4.4** **Puertos y adaptadores:** todo lo que el dominio necesita del mundo exterior (persistencia, azar, tiempo, publicación de eventos) se declara como **interfaz en `domain`** y se implementa en `infrastructure` (matizado por `ARCH-5.11`). La inyección de dependencias de NestJS vive en el **anillo técnico externo** —la capa `infrastructure` de los módulos y los `libs/*` (`ARCH-5.10`)—, **nunca** en `domain` ni `application`.
 - **ARCH-4.5** **El dominio es puro y determinista** (`estado + acción → nuevo estado`): sin I/O, sin reloj, sin aleatoriedad implícita, sin efectos secundarios.
 - **ARCH-4.6** **La aleatoriedad se inyecta**: barajado (`GR-3.6`, `GR-13.1`) y dados (`GR-11.2`) pasan por un puerto de azar con semilla, para poder reproducir y testear partidas completas.
 - **ARCH-4.7** La comunicación entre módulos se hace a través de sus **casos de uso** o de eventos de dominio, nunca alcanzando la capa `domain` o `infrastructure` de otro módulo.
@@ -108,10 +108,33 @@ paleo/
 - **ARCH-5.2** El `Makefile` vive en la **raíz** del repositorio, aunque `compose.yaml` viva en `infra/`.
 - **ARCH-5.3** **Dependencias permitidas:** `frontend → shared`, `backend → shared`. **Prohibidas:** `frontend → backend`, `backend → frontend`, y cualquier importación desde `shared` hacia `frontend` o `backend`.
 - **ARCH-5.4** `shared/` contiene únicamente **contratos**: tipos del protocolo, DTOs y tipos de dominio expuestos al cliente. Sin lógica de reglas: el motor vive en `backend/` (`ARCH-1.3`).
-- **ARCH-5.5** La estructura interna de `backend/` sigue `ARCH-4` (módulos con `domain`/`application`/`infrastructure`). La estructura interna de `frontend/` se define en `Frontend.md` y `Components.md`.
+- **ARCH-5.5** La estructura interna de `backend/` sigue `ARCH-4` (módulos con `domain`/`application`/`infrastructure`) y se organiza en dos raíces, `src/modules/*` y `src/libs/*` (`ARCH-5.8`). La estructura interna de `frontend/` se define en `Frontend.md` y `Components.md`.
 - **ARCH-5.6** **Monorepo con `pnpm` workspaces** (resuelve `OQ-ARCH-3`). `frontend`, `backend` y `shared` son **paquetes reales** del workspace, y `shared` se consume como dependencia declarada, no por paths de TypeScript.
   **Motivo:** el gestor de paquetes hace cumplir `ARCH-5.3` por sí solo — un import prohibido (`frontend → backend`) falla al resolver porque no es una dependencia declarada, en lugar de compilar silenciosamente. `pnpm` sobre `npm` por su resolución estricta: sin *hoisting*, no existen dependencias fantasma.
 - **ARCH-5.7** El workspace se declara en `pnpm-workspace.yaml` en la **raíz**, junto al `Makefile` (`ARCH-5.2`). Los `package.json` de cada paquete viven en `project/<paquete>/`.
+- **ARCH-5.8** **Backend: `modules/` vs `libs/`.** El `src/` del backend se divide en dos raíces: **`src/modules/*`** (lógica de negocio) y **`src/libs/*`** (bloques técnicos: configuración, dependencias y adaptadores de librerías como tRPC, Redis o el generador de azar). **Toda regla del juego vive en `modules/*`** (`ARCH-1.3`); en `libs/*` no hay ninguna.
+- **ARCH-5.9** **`modules/*`** son los módulos de Clean Architecture (`ARCH-4.2`): cada uno con `domain`/`application`/`infrastructure`. Un **adaptador que implementa un puerto del dominio** (repositorio, azar) vive en la **`infrastructure` de su módulo** y **usa** los `libs/*` que necesite.
+
+```
+backend/src/
+├── modules/               # Lógica de negocio (ARCH-1.3)
+│   ├── room/{domain,application,infrastructure}/
+│   ├── game/
+│   │   ├── domain/         # reduce, GameState, puertos (Rng, GameRepository)
+│   │   ├── application/    # casos de uso
+│   │   └── infrastructure/ # adaptadores: redis-game-repository, seeded-rng (usan libs/*)
+│   └── view/application/   # proyección por jugador (BE-11)
+├── libs/                  # Técnico y agnóstico de negocio (ARCH-5.10)
+│   ├── trpc/              # contexto, adaptador WS, sirve el appRouter de shared
+│   ├── redis/            # cliente/conexión Redis, genérico
+│   ├── rng/             # PRNG puro (mulberry32), sin interfaz de dominio
+│   └── config/         # configuración/entorno
+├── app.module.ts       # composición Nest
+└── main.ts             # composition root (cablea AppService en libs/trpc)
+```
+
+- **ARCH-5.10** **`libs/*`** son bloques **técnicos y agnósticos de negocio**: transporte (tRPC), clientes externos (Redis), configuración y utilidades genéricas (p. ej. un PRNG). **`libs/*` NUNCA importa `modules/*`**: es hoja, reusable y sin conocimiento del dominio. Dirección de dependencia: **`modules → libs → shared`**.
+- **ARCH-5.11** **Regla de puertos revisada** (matiza `ARCH-4.4`): el **puerto** (interfaz) se declara en `domain`; el **adaptador** que lo implementa vive en la `infrastructure` del módulo (`ARCH-5.9`) y **delega en la capacidad genérica** que ofrece un `lib` (que **no** conoce el puerto). Así un `lib` (p. ej. `libs/rng`, `libs/redis`) expone una función o cliente **sin depender del dominio**, y el módulo lo **enchufa** a su puerto. Esto mantiene `libs/* ↛ modules/*` (`ARCH-5.10`) sin sacrificar la inversión de dependencias (`ARCH-4.4`).
 
 ## ARCH-6. Infraestructura local
 

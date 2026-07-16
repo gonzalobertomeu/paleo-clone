@@ -71,7 +71,8 @@ Al crear una spec nueva, **añadirla a esta tabla**.
 
 No negociables sin cambiar `Architecture.md` primero:
 
-- **Clean Architecture, módulo → capa.** Cada módulo del backend tiene `domain/`, `application/`, `infrastructure/`. Dependencias siempre hacia adentro: `infrastructure → application → domain` (`ARCH-4.3`).
+- **`src/modules/*` vs `src/libs/*`.** La lógica de negocio vive en `src/modules/*`; lo técnico (config, deps, libs como tRPC/Redis/azar) en `src/libs/*`. `libs/*` es agnóstico de negocio y **nunca importa `modules/*`**. Dirección: `modules → libs → shared` (`ARCH-5.8`–`ARCH-5.11`).
+- **Clean Architecture, módulo → capa.** Cada módulo (`src/modules/<m>/`) tiene `domain/`, `application/`, `infrastructure/`. Dependencias siempre hacia adentro: `infrastructure → application → domain` (`ARCH-4.3`). Un adaptador de puerto (repositorio, azar) vive en la `infrastructure` del módulo y **usa** un `lib` genérico (`ARCH-5.11`).
 - **`domain` es puro.** No importa NestJS, ni tRPC, ni ninguna librería de I/O. Estado + acción → nuevo estado (`ARCH-4.5`).
 - **El azar se inyecta.** Barajado y dados pasan por un puerto con semilla: las partidas son reproducibles (`ARCH-4.6`).
 - **La información oculta se filtra en el servidor**, al serializar. El estado que sale del backend es una vista por jugador (`ARCH-7.1`, `ARCH-7.2`).

@@ -2,8 +2,8 @@ import "reflect-metadata";
 import type { Server } from "node:http";
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
-import { attachTrpcWebSocket } from "./trpc/ws";
-import { StubAppService } from "./trpc/app-service";
+import { attachTrpcWebSocket } from "./libs/trpc/ws";
+import { StubAppService } from "./libs/trpc/stub-app-service";
 
 // Bootstrap del backend NestJS (ARCH-2.3). Puerto 3000 (ARCH-6.8).
 // El transporte de partida es tRPC sobre WebSockets, adjunto al servidor HTTP (API-1.1).

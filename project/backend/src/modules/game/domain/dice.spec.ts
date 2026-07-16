@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { augmentRequirements, rollDie, DIE_FACES } from "./dice";
-import { MulberryRng } from "../infrastructure/mulberry-rng";
+import { SeededRng } from "../infrastructure/seeded-rng.adapter";
 
 // Cada test referencia la regla del dominio que ejerce por su ID (ARCH-8.1).
 describe("dice — dado de símbolos (GR-11)", () => {
@@ -35,7 +35,7 @@ describe("dice — dado de símbolos (GR-11)", () => {
   });
 
   it("BE-9.3 / GR-11.5: la tirada es determinista para (seed, index)", () => {
-    const rng = new MulberryRng();
+    const rng = new SeededRng();
     const a = rollDie(rng, 42, 7);
     const b = rollDie(rng, 42, 7);
     expect(a).toEqual(b);

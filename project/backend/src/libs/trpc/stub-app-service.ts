@@ -8,9 +8,10 @@ function ni(feature: string): never {
   throw new TRPCError({ code: "NOT_IMPLEMENTED", message: `${feature} pendiente` });
 }
 
-// Implementación de los resolvers del contrato (API-1.5). Es donde el backend cumple
-// el `AppService` definido en `shared`; aquí vivirá la lógica (validación, reduce,
-// repositorio). De momento, stubs: el transporte y el contrato ya son verificables.
+// Placeholder no-op del `AppService` (BE-2.7). Vive en `libs/trpc` de forma temporal
+// para mantener los módulos libres de tRPC mientras no hay casos de uso: todo devuelve
+// NOT_IMPLEMENTED. Cuando se escriba la lógica (validación, reduce, repositorio), la
+// implementación real se moverá a `modules/*/application` y aquí solo quedará plumbing.
 export class StubAppService implements AppService {
   roomCreate(): Promise<never> {
     return ni("room.create (BE-7.1)");
