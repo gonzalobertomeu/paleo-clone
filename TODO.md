@@ -40,7 +40,7 @@ Próximo paso recomendado (a elegir): **`Frontend.md`** o **`Components.md`** (y
 - [ ] `OQ-CD-1` — `symbols` de dorso y `possess`: ¿vocabulario cerrado por módulo o strings libres?
 - [ ] `OQ-CD-2` — Encadenamiento de acciones: ¿hace falta noción de *secuencia* o basta `secretRef` + `place`?
 - [ ] `OQ-CD-3` — Reparto de costes en acciones alternativas de cartas permanentes (`GR-14.6`)
-- [ ] `OQ-CD-4` — Fuente/formato del corpus (JSON/YAML), ubicación y estrategia de copyright
+- [ ] `OQ-CD-4` — Fuente/formato del corpus (JSON/YAML) y ubicación. *(Copyright resuelto por `OQ-1`: corpus original. Queda fijar formato/ubicación y el nombre/tema del reskin.)*
 - [ ] `OQ-CD-6` — ¿Algún módulo tiene un dorso propio que cuente como peligro? (si sí, `red` → propiedad `isDanger`)
 
 ### Protocolo (`Protocol`)
@@ -55,7 +55,7 @@ Próximo paso recomendado (a elegir): **`Frontend.md`** o **`Components.md`** (y
 - *(`OQ-BE-2` no es una duda: documenta que el snapshot podría revertirse a diffs si el corpus hace crecer la vista)*
 
 ### Dominio
-- [ ] `OQ-1` (`GameRules`) — Corpus de las 124 cartas de módulo + implicaciones de copyright
+- [x] `OQ-1` (`GameRules`) — [RESUELTA] **reskin de contenido original**: no se distribuye contenido de Paleo; el corpus cargado es propio (nota legal de `CLAUDE.md`). Queda **autorar** el corpus original (trabajo de contenido, no bloqueo legal).
 
 ## Código e infra (rama `coding`)
 

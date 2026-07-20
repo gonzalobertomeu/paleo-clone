@@ -44,7 +44,7 @@ Sin código. Un documento por dominio, cada uno con su prefijo de ID:
 
 | Spec | Prefijo | Alcance | Estado |
 |---|---|---|---|
-| `GameRules.md` | `GR-*` | Reglas del juego. Dominio puro, agnóstico de tecnología. | v1.1 ✅ |
+| `GameRules.md` | `GR-*` | Reglas del juego. Dominio puro, agnóstico de tecnología. | v1.2 ✅ |
 | `Architecture.md` | `ARCH-*` | Stack, capas, estructura de carpetas, infra, persistencia, sesión, idioma, testing. | v1.1 ✅ |
 | `CardData.md` | `CD-*` | Datos de las cartas: requisitos, costes, recompensas, secretos. | v0.2 🚧 (esquema; sin corpus) |
 | `Backend.md` | `BE-*` | Módulos (`room`/`game`/`view`), reductor puro, máquina de estados día/noche, resolución paso a paso, azar sembrado, persistencia. | v0.1 ✅ |
@@ -106,6 +106,17 @@ Specs de reglas y arquitectura cerradas. **Aún no se ha escrito código ni leva
 
 Siguiente spec: **`Frontend.md` (`FE-*`)** o **`Components.md` (`CMP-*`)** — ya desbloqueadas al estar `Protocol` + `Backend` cerrados. Alternativa: escribir el **corpus A/B** (`OQ-1`/`OQ-CD-4`) o arrancar el **scaffolding** (`pnpm` workspace, `infra/`, módulos del backend).
 
-## Nota legal
+## Nota legal — reskin original (decisión de producto)
 
-El texto y los datos de las cartas son material con copyright de Hans im Glück / Z-Man / Devir. Proyecto de uso personal y educativo; la distribución del contenido de las cartas requiere consideración aparte (`OQ-1` en `specs/GameRules.md`).
+> **No soy asesoría legal.** Orientación de proyecto, no jurídica.
+
+**Decisión (resuelve `OQ-1`):** este proyecto es un **reskin de contenido 100% original** sobre el *sistema de juego* de Paleo. La distinción operativa:
+
+- **El sistema/mecánicas NO se distribuyen como material protegido:** las reglas de juego (elección, revelación, día/noche, dados de símbolos, etc.) son un sistema, no expresión protegible. `GameRules.md` (`GR-*`) las describe **con palabras propias**, no reproduce el texto del reglamento.
+- **El contenido SÍ protegido NUNCA se incluye:** texto de carta, nombres, arte y el **dataset concreto** de las cartas de Paleo (Hans im Glück / Z-Man / Devir) **no se copian ni se distribuyen**, ni siquiera renombrando por encima.
+- **El corpus que se carga es original:** cartas, valores, temática, nombres y arte **propios** (ver `OQ-CD-4`). Paleo sirve para entender el **esquema** (`CD-*`), no como contenido a copiar.
+- **Marca:** no se usa el nombre "Paleo", su logo ni su identidad visual. El proyecto lleva **nombre y tema propios** (a fijar al montar el corpus).
+
+**Dónde vive el tema:** el motor es **agnóstico** (`OQ-2`, `CD-1.2`); la temática vive en el **corpus** (datos de carta) y en la **capa de presentación** del frontend. Los identificadores del código (`ARCH-3.3`) son infraestructura estable; renombrarlos al tema es opcional y de presentación.
+
+Uso personal/educativo y **sin ánimo de lucro**. Publicar en web abierta expone más que jugar en privado; el diseño de salas privadas (`ARCH-9.3/9.4`) ya tiende a lo privado. Cualquier salto a uso público/serio pediría asesoría real.

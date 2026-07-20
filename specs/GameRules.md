@@ -1,6 +1,6 @@
 # GameRules — Paleo
 
-> **Estado:** v1.1 — Reglas base (nivel 1, módulos A+B). Modelo de dados precisado (`GR-11.5`–`GR-11.8`): dado de símbolos, no numérico.
+> **Estado:** v1.2 — Reglas base (nivel 1, módulos A+B). Modelo de dados precisado (`GR-11.5`–`GR-11.8`): dado de símbolos, no numérico. `OQ-1` resuelta: **reskin de contenido original** (no se distribuye contenido de Paleo; ver nota legal de `CLAUDE.md`).
 > **Fuente:** Reglamento oficial de Paleo (Peter Rustemeyer, Hans im Glück / Z-Man Games; ed. española de Devir).
 > **Alcance:** este documento describe **el dominio del juego**, no su implementación. Frontend, backend, protocolos y persistencia se especifican en otros documentos de `specs/` y deben referenciar las reglas por su ID (p. ej. `GR-5.2`).
 
@@ -183,6 +183,6 @@ Cada regla tiene un ID estable `GR-<sección>.<número>`. Los IDs **no se reutil
 
 ## Cuestiones abiertas
 
-- **OQ-1** El contenido concreto de las 124 cartas de módulo (requisitos, costes, recompensas, encadenamientos de secretos) **no está en el reglamento**. Requiere una spec de datos propia (`specs/CardData.md`, pendiente) y tiene implicaciones de copyright para la distribución.
+- **OQ-1** [RESUELTA → reskin original] El contenido concreto de las cartas (requisitos, costes, recompensas, encadenamientos) tiene su **esquema** en `specs/CardData.md` (`CD-*`). Decisión de producto (nota legal de `CLAUDE.md`): el proyecto es un **reskin de contenido 100% original** sobre el *sistema* de Paleo. **No se distribuye contenido protegido** (texto, nombres, arte ni el dataset de Paleo); el corpus cargado es **propio** (`OQ-CD-4`). El sistema de reglas no es protegible y aquí se describe con palabras propias. Queda como trabajo de **contenido** (no bloqueo legal) **autorar** el corpus original.
 - **OQ-2** [RESUELTA] Alcance de la v1: ¿implementamos solo el nivel 1 (base + módulos A y B) o el motor completo A–J desde el principio? Decidido: **motor genérico preparado para A–J, pero en v1 solo se cargan los datos de las cartas de Base + módulos A y B**. La arquitectura de reglas y el esquema de datos no asumen el nivel 1; la limitación es de contenido, no de motor.
 - **OQ-3** [RESUELTA → `ARCH-1.2`] Modo de juego: ¿multijugador en red, hotseat, o solitario (1 jugador controlando varios grupos)? Decidido: **multijugador en red y en tiempo real**.
