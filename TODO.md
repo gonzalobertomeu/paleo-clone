@@ -70,7 +70,10 @@ Scaffolding y transporte hechos y verificados (`pnpm install`, typecheck, `nest 
 
 Pendiente (siguiente carne, sobre `coding`):
 
-- [ ] **`game/domain`: la máquina de estados** — implementar `reduce` (`BE-5`): `day.chooseCard`, revelación atómica, resolución paso a paso (`BE-8`). Sustituye los stubs de `StubAppService`.
+- [x] **`game/domain`: día** — `reduce` (`BE-5`): `day.chooseCard`, `sleepEarly`, autodormir (`GR-5.9`) y **revelación atómica** (`GR-5.6`). TDD, verde.
+- [x] **`game/domain`: entrada a noche + alimentar** — transición `GR-5.11` día→noche (`nightStarted`), sub-estado `feeding` con **autoaplicado** cuando el almacén alcanza (`GR-12.2`, `API-10.2`) → `missions`. TDD (`reduce.night.spec.ts`), verde.
+- [ ] **`game/domain`: resolución paso a paso** (`BE-8`) — `pendingStep`/`resolveStep`. Bloquea también el 2º camino a noche (fin de turno tras `resolving`, `BE-5.6`) y el caso de **comida insuficiente** en feeding (designación de no alimentados por intents, `API-10.2`). Depende de `OQ-BE-1` (vocabulario de pasos) → corpus A/B.
+- [ ] **`game/domain`: noche `missions`** (`GR-12.3/12.7`) — resolución de misiones/acciones nocturnas; depende del corpus. Sustituye los stubs de `StubAppService`.
 - [ ] **`view`: `projectView`** — proyección por jugador con filtrado de info oculta (`BE-11`) + tests (`BE-15.4`).
 - [ ] **`game/application` + casos de uso reales** — cablear `reduce` + repositorio + publicación de vista/eventos; reemplazar `StubAppService` por la impl vía DI del módulo `game`.
 - [ ] **`GameRepository` adaptador Redis** (`BE-10`, `ARCH-9.2`) + puerto de azar como provider DI.

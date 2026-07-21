@@ -110,11 +110,14 @@ function afterChoice(state: GameState): ReduceResult {
   );
 
   const awake = groupList(normalized).filter((g) => g.status === "awake");
-  const allChosen = awake.length > 0 && awake.every((g) => g.chosenCard !== null);
-  if (!allChosen) {
-    // TODO(BE-5.7): si awake.length === 0, todos duermen -> noche (GR-5.11).
-    return ok(normalized, []);
-  }
+
+  // GR-5.11: si nadie sigue despierto, el día termina -> noche (BE-5.7).
+  // (Desde choosing: todos durmieron temprano o vaciaron su mazo sin elegir.
+  //  El otro camino a noche —fin de turno tras resolving, BE-5.6— llega con BE-8.)
+  if (awake.length === 0) return enterNight(normalized);
+
+  const allChosen = awake.every((g) => g.chosenCard !== null);
+  if (!allChosen) return ok(normalized, []);
 
   // Revelación atómica (API-7.1): todas a la vez. Incluso con 1 despierto (API-7.4).
   const revealed = mapGroups(normalized, (g) =>
@@ -123,6 +126,37 @@ function afterChoice(state: GameState): ReduceResult {
       : g,
   );
   return ok({ ...revealed, subState: "resolving" }, [{ type: "revealed" }]);
+}
+
+// --- Fase de noche: entrada + alimentar (BE-5.7, GR-12) ---
+
+// Transición día -> noche (GR-5.11). Paso de servidor: emite nightStarted (API-10.1)
+// y arranca en el sub-estado feeding (GR-12.2), que se autoaplica si el almacén
+// alcanza (ver feed).
+function enterNight(state: GameState): ReduceResult {
+  const atNight: GameState = { ...state, phase: "night", subState: "feeding" };
+  return feed(atNight, [{ type: "nightStarted" }]);
+}
+
+// night.feeding (GR-12.2, API-10.2): 1 comida por persona de cada grupo, desde el
+// almacén común. Si alcanza, el servidor autoaplica el pago y avanza a missions.
+// `prior` son los eventos ya acumulados en la transición (p. ej. nightStarted).
+function feed(state: GameState, prior: DomainEvent[]): ReduceResult {
+  const mouths = groupList(state).reduce((n, g) => n + g.persons.length, 0);
+  if (state.storage.food >= mouths) {
+    const paid: GameState = {
+      ...state,
+      storage: { ...state.storage, food: state.storage.food - mouths },
+      subState: "missions",
+    };
+    return ok(paid, prior);
+  }
+
+  // Almacén insuficiente: quién queda sin alimentar lo coordina la tribu con intents
+  // individuales (API-10.2); cada persona sin alimentar coloca 1 calavera (GR-4.2, sin
+  // morir) y podría disparar `ended` (BE-5.9). Necesita la maquinaria de pasos (BE-8).
+  // TODO(BE-5.7/OQ-BE-1): sub-paso de designación de no alimentados.
+  return ok(state, prior);
 }
 
 // --- helpers puros ---

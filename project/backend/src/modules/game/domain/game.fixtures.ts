@@ -1,10 +1,15 @@
 // Constructores de estado para tests del dominio (ARCH-8.2: sin infraestructura).
 // Excluido del build (tsconfig.build.json): solo lo consumen los .spec.
 import type { CardId, GroupId, PlayerId } from "@paleo/shared";
-import type { GameState, GroupState } from "./state";
+import type { GameState, GroupState, PersonState } from "./state";
 
 export function gid(id: string): GroupId {
   return id as GroupId;
+}
+
+// Una persona sana (sin heridas). Solo `persons.length` importa para alimentar (GR-12.2).
+export function makePerson(cardId = "p"): PersonState {
+  return { cardId: cardId as CardId, abilities: {}, hearts: 3, wounds: 0 };
 }
 
 export function cards(...ids: string[]): CardId[] {
